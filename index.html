@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Services Contract Generator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+            background-color: #f5f5f7;
+            color: #1d1d1f;
+            line-height: 1.6;
+        }
+
+        .login-screen {
+            position: fixed;
+            inset: 0;
+            background: #f5f5f7;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .login-screen.hidden {
+            display: none;
+        }
+
+        .login-card {
+            background: white;
+            padding: 2.5rem;
+            border-radius: 12px;
+            width: 100%;
+            max-width: 360px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e5e5e7;
+        }
+
+        .login-card h1 {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            text-align: center;
+        }
+
+        .login-card p {
+            text-align: center;
+            color: #86868b;
+            margin-bottom: 2rem;
+            font-size: 13px;
+        }
+
+        .login-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .login-form input {
+            padding: 0.75rem;
+            border: 1px solid #d2d2d7;
+            border-radius: 8px;
+            font-size: 15px;
+            font-family: inherit;
+            transition: all 0.2s ease;
+        }
+
+        .login-form input:focus {
+            outline: none;
+            border-color: #0071e3;
+            box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.1);
+        }
+
+        .login-btn {
+            padding: 0.75rem;
+            background: #0071e3;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 15px;
+            transition: all 0.2s ease;
+        }
+
+        .login-btn:hover {
+            background: #0077ed;
+        }
+
+        .login-btn:active {
+            transform: scale(0.98);
+        }
+
+        .login-hint {
+            text-align: center;
+            font-size: 12px;
+            color: #86868b;
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #e5e5e7;
+        }
+
+        .login-hint strong {
+            color: #1d1d1f;
+        }
+
+        .error-message {
+            color: #d70015;
+            font-size: 13px;
+            margin-top: -0.75rem;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .section {
+            display: flex;
+            flex-direction: column;
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e5e5e7;
+            overflow-y: auto;
+        }
+
+        .section h2 {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            color: #1d1d1f;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .logout-btn {
+            padding: 0.5rem 1rem;
+            background: #f5f5f7;
+            color: #0071e3;
+            border: 1px solid #d2d2d7;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .logout-btn:hover {
+            background: #e5e5e7;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 1.25rem;
+        }
+
+        label {
+            font-size: 13px;
+            font-weight: 500;
+            color: #555;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        input, textarea, select {
+            font-family: inherit;
+            font-size: 15px;
+            padding: 0.75rem 1rem;
+            border: 1px solid #d2d2d7;
+            border-radius: 8px;
+            background-color: white;
+            color: #1d1d1f;
+            transition: all 0.2s ease;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #0071e3;
+            box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.1);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 0.75rem;
+            margin-top: 2rem;
+        }
+
+        button {
+            flex: 1;
+            padding: 0.75rem 1.5rem;
+            font-size: 15px;
+            font-weight: 500;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-size: 13px;
+        }
+
+        button.primary {
+            background-color: #0071e3;
+            color: white;
+        }
+
+        button.primary:hover {
+            background-color: #0077ed;
+        }
+
+        button.primary:active {
+            transform: scale(0.98);
+        }
+
+        button.secondary {
+            background-color: white;
+            color: #0071e3;
+            border: 1.5px solid #0071e3;
+        }
+
+        button.secondary:hover {
+            background-color: #f5f5f7;
+        }
+
+        .preview-content {
+            font-size: 14px;
+            line-height: 1.8;
+            color: #1d1d1f;
+        }
+
+        .contract-header {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid #e5e5e7;
+        }
+
+        .contract-header h1 {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .contract-section {
+            margin-bottom: 1.5rem;
+        }
+
+        .contract-section h3 {
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.75rem;
+            color: #555;
+        }
+
+        .contract-section p {
+            font-size: 14px;
+            margin-bottom: 0.5rem;
+        }
+
+        .empty-state {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: #86868b;
+            text-align: center;
+        }
+
+        .two-column {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        @media (max-width: 1024px) {
+            .container {
+                grid-template-columns: 1fr;
+                height: auto;
+            }
+
+            .section {
+                height: auto;
+            }
+
+            .two-column {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Login Screen -->
+    <div class="login-screen" id="loginScreen">
+        <div class="login-card">
+            <h1>Contract Generator</h1>
+            <p>Demo Login</p>
+            <div class="login-form">
+                <input type="text" id="username" placeholder="Username" autofocus>
+                <input type="password" id="password" placeholder="Password">
+                <div class="error-message" id="errorMessage">Invalid credentials</div>
+                <button class="login-btn" onclick="handleLogin()">Sign In</button>
+            </div>
+            <div class="login-hint">
+                Demo: <strong>user</strong> / <strong>demo</strong>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main App -->
+    <div class="container" id="appContainer" style="display: none;">
+        <!-- Form Section -->
+        <div class="section">
+            <div class="section-header">
+                <h2>Contract Details</h2>
+                <button class="logout-btn" onclick="handleLogout()">Sign Out</button>
+            </div>
+            <form id="contractForm">
+                <div class="form-group">
+                    <label for="clientName">Client Name</label>
+                    <input type="text" id="clientName" placeholder="Acme Corporation" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="clientAddress">Client Address</label>
+                    <input type="text" id="clientAddress" placeholder="123 Business St, City, State">
+                </div>
+
+                <div class="two-column">
+                    <div class="form-group">
+                        <label for="yourCompany">Your Company Name</label>
+                        <input type="text" id="yourCompany" placeholder="Your Company" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="yourAddress">Your Address</label>
+                        <input type="text" id="yourAddress" placeholder="Your Address">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="serviceDescription">Service Description</label>
+                    <textarea id="serviceDescription" placeholder="Describe the services to be provided..." required></textarea>
+                </div>
+
+                <div class="two-column">
+                    <div class="form-group">
+                        <label for="rate">Rate per Hour/Unit</label>
+                        <input type="number" id="rate" placeholder="150" step="0.01" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="rateType">Rate Type</label>
+                        <select id="rateType" required>
+                            <option value="per hour">Per Hour</option>
+                            <option value="per day">Per Day</option>
+                            <option value="per project">Per Project</option>
+                            <option value="monthly retainer">Monthly Retainer</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="two-column">
+                    <div class="form-group">
+                        <label for="startDate">Start Date</label>
+                        <input type="date" id="startDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="endDate">End Date</label>
+                        <input type="date" id="endDate" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="paymentTerms">Payment Terms</label>
+                    <select id="paymentTerms" required>
+                        <option value="Net 15">Net 15</option>
+                        <option value="Net 30">Net 30</option>
+                        <option value="Net 45">Net 45</option>
+                        <option value="Due upon receipt">Due upon receipt</option>
+                        <option value="50% upfront, 50% on completion">50% upfront, 50% on completion</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="additionalTerms">Additional Terms</label>
+                    <textarea id="additionalTerms" placeholder="Any additional terms or conditions..."></textarea>
+                </div>
+
+                <div class="button-group">
+                    <button type="button" class="secondary" onclick="downloadPDF()">Download PDF</button>
+                    <button type="button" class="primary" onclick="copyContract()">Copy Contract</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Preview Section -->
+        <div class="section">
+            <h2>Preview</h2>
+            <div class="preview-content" id="contractPreview">
+                <div class="empty-state">
+                    Fill in the details to preview your contract
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script>
+        // Login System
+        const DEMO_USER = 'user';
+        const DEMO_PASSWORD = 'demo';
+
+        function handleLogin() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const errorMsg = document.getElementById('errorMessage');
+
+            if (username === DEMO_USER && password === DEMO_PASSWORD) {
+                localStorage.setItem('isLoggedIn', 'true');
+                document.getElementById('loginScreen').style.display = 'none';
+                document.getElementById('appContainer').style.display = 'grid';
+                initApp();
+            } else {
+                errorMsg.classList.add('show');
+                setTimeout(() => {
+                    errorMsg.classList.remove('show');
+                }, 3000);
+            }
+        }
+
+        function handleLogout() {
+            localStorage.removeItem('isLoggedIn');
+            document.getElementById('loginScreen').style.display = 'flex';
+            document.getElementById('appContainer').style.display = 'none';
+            document.getElementById('username').value = '';
+            document.getElementById('password').value = '';
+            document.getElementById('username').focus();
+        }
+
+        function checkAuth() {
+            if (localStorage.getItem('isLoggedIn') === 'true') {
+                document.getElementById('loginScreen').style.display = 'none';
+                document.getElementById('appContainer').style.display = 'grid';
+                initApp();
+            }
+        }
+
+        // Allow Enter key to login
+        document.addEventListener('DOMContentLoaded', () => {
+            checkAuth();
+            document.getElementById('password').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') handleLogin();
+            });
+        });
+
+        // Contract Generator
+        function initApp() {
+            const form = document.getElementById('contractForm');
+            const preview = document.getElementById('contractPreview');
+            const inputs = form.querySelectorAll('input, textarea, select');
+            inputs.forEach(input => {
+                input.addEventListener('input', updatePreview);
+                input.addEventListener('change', updatePreview);
+            });
+
+            // Set default dates
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('startDate').value = today;
+            const endDate = new Date();
+            endDate.setMonth(endDate.getMonth() + 3);
+            document.getElementById('endDate').value = endDate.toISOString().split('T')[0];
+        }
+
+        function updatePreview() {
+            const preview = document.getElementById('contractPreview');
+            const data = {
+                clientName: document.getElementById('clientName').value,
+                clientAddress: document.getElementById('clientAddress').value,
+                yourCompany: document.getElementById('yourCompany').value,
+                yourAddress: document.getElementById('yourAddress').value,
+                serviceDescription: document.getElementById('serviceDescription').value,
+                rate: document.getElementById('rate').value,
+                rateType: document.getElementById('rateType').value,
+                startDate: formatDate(document.getElementById('startDate').value),
+                endDate: formatDate(document.getElementById('endDate').value),
+                paymentTerms: document.getElementById('paymentTerms').value,
+                additionalTerms: document.getElementById('additionalTerms').value
+            };
+
+            if (!data.clientName || !data.yourCompany || !data.serviceDescription || !data.rate || !data.startDate || !data.endDate) {
+                preview.innerHTML = '<div class="empty-state">Fill in the required fields to preview your contract</div>';
+                return;
+            }
+
+            const contract = generateContract(data);
+            preview.innerHTML = contract;
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) return '';
+            const options = { year: 'numeric', month: 'long', day: 'numeric' };
+            return new Date(dateString).toLocaleDateString('en-US', options);
+        }
+
+        function generateContract(data) {
+            return `
+                <div class="contract-header">
+                    <h1>Services Agreement</h1>
+                </div>
+
+                <div class="contract-section">
+                    <h3>Parties</h3>
+                    <p><strong>Client:</strong> ${escapeHtml(data.clientName)}</p>
+                    ${data.clientAddress ? `<p>${escapeHtml(data.clientAddress)}</p>` : ''}
+                    <p style="margin-top: 0.75rem;"><strong>Service Provider:</strong> ${escapeHtml(data.yourCompany)}</p>
+                    ${data.yourAddress ? `<p>${escapeHtml(data.yourAddress)}</p>` : ''}
+                </div>
+
+                <div class="contract-section">
+                    <h3>Services</h3>
+                    <p>${escapeHtml(data.serviceDescription).split('\n').join('<br>')}</p>
+                </div>
+
+                <div class="contract-section">
+                    <h3>Compensation</h3>
+                    <p>Client agrees to pay Service Provider <strong>$${parseFloat(data.rate).toFixed(2)} ${escapeHtml(data.rateType)}</strong> for the services rendered.</p>
+                    <p style="margin-top: 0.75rem;">Payment terms: <strong>${escapeHtml(data.paymentTerms)}</strong></p>
+                </div>
+
+                <div class="contract-section">
+                    <h3>Term</h3>
+                    <p>This agreement begins on <strong>${escapeHtml(data.startDate)}</strong> and ends on <strong>${escapeHtml(data.endDate)}</strong>, unless terminated earlier in accordance with this agreement.</p>
+                </div>
+
+                <div class="contract-section">
+                    <h3>Intellectual Property</h3>
+                    <p>All work product, deliverables, and intellectual property created by Service Provider shall be owned by Client upon full payment. Service Provider retains the right to use general methodologies and techniques developed during the engagement.</p>
+                </div>
+
+                <div class="contract-section">
+                    <h3>Confidentiality</h3>
+                    <p>Both parties agree to maintain the confidentiality of any proprietary or sensitive information shared during the course of this engagement. This obligation shall survive termination of this agreement.</p>
+                </div>
+
+                <div class="contract-section">
+                    <h3>Termination</h3>
+                    <p>Either party may terminate this agreement with 14 days' written notice. Upon termination, Service Provider shall be compensated for all work completed through the effective date of termination.</p>
+                </div>
+
+                ${data.additionalTerms ? `
+                <div class="contract-section">
+                    <h3>Additional Terms</h3>
+                    <p>${escapeHtml(data.additionalTerms).split('\n').join('<br>')}</p>
+                </div>
+                ` : ''}
+
+                <div class="contract-section">
+                    <h3>Signatures</h3>
+                    <p style="margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #e5e5e7;">
+                        For Client:<br><br>
+                        Signature: ________________________<br>
+                        Date: ________________________
+                    </p>
+                    <p style="margin-top: 2rem;">
+                        For Service Provider:<br><br>
+                        Signature: ________________________<br>
+                        Date: ________________________
+                    </p>
+                </div>
+            `;
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function copyContract() {
+            const text = document.getElementById('contractPreview').innerText;
+            navigator.clipboard.writeText(text).then(() => {
+                const btn = event.target;
+                const originalText = btn.textContent;
+                btn.textContent = 'Copied!';
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                }, 2000);
+            }).catch(() => {
+                alert('Failed to copy. Please try again.');
+            });
+        }
+
+        function downloadPDF() {
+            const clientName = document.getElementById('clientName').value || 'contract';
+            const filename = `services-agreement-${clientName.replace(/\s+/g, '-')}-${new Date().toISOString().split('T')[0]}.pdf`;
+
+            const element = document.getElementById('contractPreview');
+            const opt = {
+                margin: 10,
+                filename: filename,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2 },
+                jsPDF: { orientation: 'portrait', unit: 'mm', format: 'letter' }
+            };
+
+            html2pdf().set(opt).from(element).save();
+        }
+    </script>
+</body>
+</html>
